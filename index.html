@@ -7,7 +7,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>Programme Maison</title>
-<!-- Manifeste intégré pour Chrome (Ajout à l'écran d'accueil) -->
 <link rel="manifest" href='data:application/manifest+json,{
   "name": "Programme Maison",
   "short_name": "Muscu",
@@ -31,7 +30,7 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  background:var(--bg);color:var(--txt);padding-bottom:150px;font-size:15px}
+  background:var(--bg);color:var(--txt);padding-bottom:120px;font-size:15px}
 header{position:sticky;top:0;background:rgba(15,17,21,.96);backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line);padding:12px 14px;z-index:10}
 h1{font-size:15px;margin:0 0 10px;font-weight:600;letter-spacing:.2px}
@@ -68,15 +67,17 @@ nav button{flex:1;padding:15px 0;background:none;border:none;color:var(--dim);
   font-size:12px;font-weight:600;font-family:inherit;cursor:pointer}
 nav button.on{color:var(--acc)}
 .hitem{background:var(--card);border:1px solid var(--line);border-radius:12px;
-  padding:12px;margin-bottom:9px;font-size:13px}
-.hitem .top{display:flex;justify-content:space-between;margin-bottom:6px}
-.hitem .d{color:var(--dim);font-size:12px}
-.hitem .det{color:var(--dim);font-size:12px;line-height:1.6}
+  padding:12px;margin-bottom:12px;font-size:13px}
+.hitem .top{display:flex;justify-content:space-between;margin-bottom:8px;font-weight:600}
+.hitem .d{color:var(--dim);font-size:12px;font-weight:normal}
+.h-ex{margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
+.h-ex-name{color:var(--acc);font-weight:600;font-size:12px;margin-bottom:2px}
+.h-sets{color:var(--dim);font-size:12px;padding-left:10px}
 .empty{text-align:center;color:var(--dim);font-size:13px;padding:40px 10px}
-#timerBtn{position:fixed;bottom:82px;right:14px;width:54px;height:54px;border-radius:50%;
+#timerBtn{position:fixed;bottom:80px;right:14px;width:54px;height:54px;border-radius:50%;
   border:1px solid var(--line);background:var(--card2);color:var(--txt);font-size:20px;
   z-index:15;display:flex;align-items:center;justify-content:center;cursor:pointer}
-#timer{position:fixed;bottom:146px;right:14px;background:var(--card);
+#timer{position:fixed;bottom:144px;right:14px;background:var(--card);
   border:1px solid var(--line);border-radius:16px;padding:12px;z-index:16;
   display:none;box-shadow:0 10px 30px rgba(0,0,0,.5)}
 #timer.on{display:block}
@@ -238,17 +239,30 @@ function render(){
 }
 function renderHistory(){
   if(!state.history.length) return `<div class="empty">Aucune séance validée pour l’instant.<br>Fais ta séance puis appuie sur « Valider ».</div>`;
-  let html = `<div class="card"><h2>Historique</h2>
+  let html = `<div class="card"><h2>Historique détaillé</h2>
     <div class="sub">${state.history.length} séance(s) validée(s)</div></div>`;
+  
   state.history.slice().reverse().forEach(h=>{
     const d = new Date(h.date).toLocaleDateString("fr-FR",
       {day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+    
     html += `<div class="hitem">
-      <div class="top"><b>Séance ${h.session} · S${h.week}</b><span class="d">${d}</span></div>
-      <div class="det">${h.doneSets}/${h.totalSets} séries · ${h.totalReps} reps au total</div>
-      ${h.details.length ? `<div class="det">${h.details.join("<br>")}</div>` : ""}
-    </div>`;
+      <div class="top"><span>Séance ${h.session} · Semaine ${h.week}</span><span class="d">${d}</span></div>`;
+    
+    if(h.exercises && h.exercises.length > 0){
+      h.exercises.forEach(ex => {
+        html += `<div class="h-ex">
+          <div class="h-ex-name">${ex.name}</div>
+          <div class="h-sets">`;
+        ex.sets.forEach((s, idx) => {
+          html += `Série ${idx+1}: <b>${s.reps || '0'} reps</b> (${s.load || 'PDC'})<br>`;
+        });
+        html += `</div></div>`;
+      });
+    }
+    html += `</div>`;
   });
+  
   html += `<button class="btn danger" data-act="wipe">Tout effacer</button>`;
   return html;
 }
@@ -270,25 +284,34 @@ document.getElementById("app").addEventListener("click", e=>{
     }
   }
   if(act === "validate"){
-    if(!confirm("Valider la séance et l'ajouter à l'historique ?")) return;
+    if(!confirm("Valider la séance et l'enregistrer dans l'historique ?")) return;
     const sess = PROGRAM[activeTab];
-    let doneSets=0, totalSets=0, totalReps=0, details=[];
+    let sessionExercises = [];
+
     sess.exercises.forEach(ex=>{
       const t = ex.weeks[state.week-1];
-      totalSets += t.sets;
-      let d=0, r=0;
-      for(let i=0;i<t.sets;i++){
-        const s = getSet(ex.id,i);
-        if(s.done){ d++; doneSets++; r += (+s.reps||0); }
+      let exSets = [];
+      for(let i=0; i<t.sets; i++){
+        const s = getSet(ex.id, i);
+        if(s.done){
+          exSets.push({reps: s.reps || t.reps, load: s.load || t.load || "PDC"});
+        }
       }
-      totalReps += r;
-      if(d) details.push(`${ex.name} : ${d}/${t.sets}${r?` (${r} reps)`:""}`);
+      if(exSets.length > 0){
+        sessionExercises.push({name: ex.name, sets: exSets});
+      }
     });
-    state.history.push({date:Date.now(), session:activeTab, week:state.week,
-      doneSets, totalSets, totalReps, details});
+
+    state.history.push({
+      date: Date.now(), 
+      session: activeTab, 
+      week: state.week,
+      exercises: sessionExercises
+    });
+
     state.current[key()] = {};
     save(); render();
-    alert(`Séance validée : ${doneSets}/${totalSets} séries · ${totalReps} reps`);
+    alert("Séance validée et enregistrée avec succès !");
   }
   if(act === "clear"){
     if(!confirm("Effacer les données de cette séance (semaine en cours) ?")) return;
