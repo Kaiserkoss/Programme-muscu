@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Programme Maison</title>
+<!-- Manifeste intégré pour Chrome (Ajout à l'écran d'accueil) -->
+<link rel="manifest" href='data:application/manifest+json,{
+  "name": "Programme Maison",
+  "short_name": "Muscu",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0f1115",
+  "theme_color": "#0f1115",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2964/2964514.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}'>
+<style>
+:root{
+  --bg:#0f1115;--card:#171a21;--card2:#1f232c;--line:#2a2f3a;
+  --txt:#e8ebf0;--dim:#98a1b3;--acc:#4ade80;--warn:#fbbf24;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg);color:var(--txt);padding-bottom:150px;font-size:15px}
+header{position:sticky;top:0;background:rgba(15,17,21,.96);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);padding:12px 14px;z-index:10}
+h1{font-size:15px;margin:0 0 10px;font-weight:600;letter-spacing:.2px}
+.weeks{display:flex;gap:6px}
+.weeks button{flex:1;padding:11px 0;border-radius:10px;border:1px solid var(--line);
+  background:var(--card);color:var(--dim);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
+.weeks button.on{background:var(--acc);color:#08130c;border-color:var(--acc)}
+main{padding:14px;max-width:640px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:14px;margin-bottom:12px}
+.card h2{font-size:15px;margin:0 0 3px;font-weight:600}
+.sub{font-size:12px;color:var(--dim);margin-bottom:10px}
+.sub b{color:var(--acc);font-weight:600}
+.set{display:flex;align-items:center;gap:9px;padding:7px 0;border-top:1px solid var(--line)}
+.chk{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);
+  background:var(--card2);display:flex;align-items:center;justify-content:center;
+  flex:0 0 auto;font-size:16px;color:transparent;font-weight:700;user-select:none;cursor:pointer}
+.chk.on{background:var(--acc);border-color:var(--acc);color:#08130c}
+.slabel{font-size:11px;color:var(--dim);width:44px;flex:0 0 auto}
+.fields{display:flex;gap:7px;flex:1;min-width:0}
+.field{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.field span{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.05em}
+input{background:var(--card2);border:1px solid var(--line);color:var(--txt);
+  border-radius:9px;padding:9px 8px;font-size:14px;width:100%;font-family:inherit;min-width:0}
+input:focus{outline:none;border-color:var(--acc)}
+.btn{width:100%;padding:15px;border-radius:12px;border:none;background:var(--acc);
+  color:#08130c;font-weight:700;font-size:15px;margin-top:8px;font-family:inherit;cursor:pointer}
+.btn.ghost{background:var(--card2);color:var(--dim);border:1px solid var(--line)}
+.btn.danger{background:#2a1518;color:#f87171;border:1px solid #4a2026}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:rgba(15,17,21,.98);
+  backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:20;
+  padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;padding:15px 0;background:none;border:none;color:var(--dim);
+  font-size:12px;font-weight:600;font-family:inherit;cursor:pointer}
+nav button.on{color:var(--acc)}
+.hitem{background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:12px;margin-bottom:9px;font-size:13px}
+.hitem .top{display:flex;justify-content:space-between;margin-bottom:6px}
+.hitem .d{color:var(--dim);font-size:12px}
+.hitem .det{color:var(--dim);font-size:12px;line-height:1.6}
+.empty{text-align:center;color:var(--dim);font-size:13px;padding:40px 10px}
+#timerBtn{position:fixed;bottom:82px;right:14px;width:54px;height:54px;border-radius:50%;
+  border:1px solid var(--line);background:var(--card2);color:var(--txt);font-size:20px;
+  z-index:15;display:flex;align-items:center;justify-content:center;cursor:pointer}
+#timer{position:fixed;bottom:146px;right:14px;background:var(--card);
+  border:1px solid var(--line);border-radius:16px;padding:12px;z-index:16;
+  display:none;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+#timer.on{display:block}
+#timerBig{font-size:30px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;
+  margin-bottom:9px;letter-spacing:.5px}
+#timerBig.run{color:var(--acc)}
+.trow{display:flex;gap:6px}
+.trow button{padding:9px 11px;border-radius:9px;border:1px solid var(--line);
+  background:var(--card2);color:var(--txt);font-size:13px;font-family:inherit;font-weight:600;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <h1>Programme Maison · 3 séances</h1>
+  <div class="weeks" id="weeks"></div>
+</header>
+<main id="app"></main>
+<nav>
+  <button data-tab="A">Séance A</button>
+  <button data-tab="B">Séance B</button>
+  <button data-tab="C">Séance C</button>
+  <button data-tab="H">Historique</button>
+</nav>
+<button id="timerBtn">⏱</button>
+<div id="timer">
+  <div id="timerBig">1:30</div>
+  <div class="trow">
+    <button data-t="mod-30">-30s</button>
+    <button data-t="mod+30">+30s</button>
+    <button data-t="cancel">✕</button>
+  </div>
+</div>
+<script>
+/* ============ PROGRAMME ============ */
+const PROGRAM = {
+  A: { title:"Séance A — Force", exercises:[
+    { id:"a1", name:"Pompes déclinées (pieds 20–30 cm)", rest:120, weeks:[
+      {sets:4,reps:"6",load:"PDC"},{sets:4,reps:"7",load:"PDC"},
+      {sets:4,reps:"8",load:"PDC"},{sets:4,reps:"8",load:"PDC",note:"tempo 3 s descente"}]},
+    { id:"a2", name:"Pompes classiques", rest:120, weeks:[
+      {sets:3,reps:"8",load:"PDC"},{sets:3,reps:"9",load:"PDC"},
+      {sets:4,reps:"9",load:"PDC"},{sets:4,reps:"10",load:"PDC"}]},
+    { id:"a3", name:"Rowing penché barre", rest:90, weeks:[
+      {sets:3,reps:"8",load:"12 kg"},{sets:3,reps:"10",load:"14 kg"},
+      {sets:3,reps:"12",load:"16 kg"},{sets:4,reps:"10",load:"18 kg"}]},
+    { id:"a4", name:"Fentes poids du corps", rest:90, weeks:[
+      {sets:3,reps:"10",load:"PDC",note:"par jambe"},{sets:3,reps:"12",load:"PDC",note:"par jambe"},
+      {sets:3,reps:"12",load:"PDC",note:"par jambe"},{sets:3,reps:"15",load:"PDC",note:"par jambe"}]},
+    { id:"a5", name:"Planche", rest:45, weeks:[
+      {sets:3,reps:"30",load:"sec"},{sets:3,reps:"35",load:"sec"},
+      {sets:3,reps:"40",load:"sec"},{sets:3,reps:"45",load:"sec"}]}
+  ]},
+  B: { title:"Séance B — Volume + tirage", exercises:[
+    { id:"b1", name:"Pompes classiques", rest:120, weeks:[
+      {sets:4,reps:"8",load:"PDC"},{sets:4,reps:"9",load:"PDC"},
+      {sets:4,reps:"10",load:"PDC"},{sets:4,reps:"10",load:"PDC",note:"pause 2 s en bas"}]},
+    { id:"b2", name:"Pompes serrées (genoux)", rest:90, weeks:[
+      {sets:3,reps:"6",load:"PDC"},{sets:3,reps:"8",load:"PDC"},
+      {sets:3,reps:"8",load:"PDC"},{sets:3,reps:"10",load:"PDC"}]},
+    { id:"b3", name:"Développé militaire barre", rest:90, weeks:[
+      {sets:3,reps:"8",load:"10 kg"},{sets:3,reps:"9",load:"12 kg"},
+      {sets:3,reps:"10",load:"12 kg"},{sets:3,reps:"10",load:"14 kg"}]},
+    { id:"b4", name:"Soulevé de terre roumain", rest:90, weeks:[
+      {sets:3,reps:"10",load:"14 kg"},{sets:3,reps:"10",load:"16 kg"},
+      {sets:3,reps:"12",load:"18 kg"},{sets:3,reps:"10",load:"18 kg",note:"tempo 3 s"}]},
+    { id:"b5", name:"Gainage latéral", rest:45, weeks:[
+      {sets:2,reps:"20",load:"sec",note:"par côté"},{sets:2,reps:"25",load:"sec",note:"par côté"},
+      {sets:2,reps:"30",load:"sec",note:"par côté"},{sets:2,reps:"30",load:"sec",note:"par côté"}]}
+  ]},
+  C: { title:"Séance C — Légère + bras", exercises:[
+    { id:"c1", name:"Pompes inclinées (mains sur table)", rest:90, weeks:[
+      {sets:3,reps:"10",load:"PDC"},{sets:3,reps:"12",load:"PDC"},
+      {sets:3,reps:"12",load:"PDC"},{sets:3,reps:"15",load:"PDC"}]},
+    { id:"c2", name:"Curl biceps barre", rest:90, weeks:[
+      {sets:3,reps:"10",load:"10 kg"},{sets:3,reps:"12",load:"12 kg"},
+      {sets:3,reps:"10",load:"12 kg"},{sets:3,reps:"10",load:"14 kg"}]},
+    { id:"c3", name:"Rowing un bras (petite barre)", rest:90, weeks:[
+      {sets:3,reps:"10",load:"barre+2 kg"},{sets:3,reps:"12",load:"barre+2 kg"},
+      {sets:3,reps:"10",load:"barre+4 kg"},{sets:3,reps:"12",load:"barre+4 kg"}]},
+    { id:"c4", name:"Front squat / goblet squat", rest:90, weeks:[
+      {sets:3,reps:"8",load:"10 kg"},{sets:3,reps:"10",load:"12 kg"},
+      {sets:3,reps:"10",load:"14 kg"},{sets:3,reps:"12",load:"16 kg"}]},
+    { id:"c5", name:"Planche", rest:45, weeks:[
+      {sets:2,reps:"30",load:"sec"},{sets:2,reps:"35",load:"sec"},
+      {sets:2,reps:"40",load:"sec"},{sets:2,reps:"45",load:"sec"}]}
+  ]}
+};
+/* ============ ETAT ============ */
+const KEY = "programmeMaison_v1";
+let state = loadState();
+let activeTab = "A";
+function loadState(){
+  try{
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if(s && s.current && Array.isArray(s.history) && s.week) return s;
+  }catch(e){}
+  return { week:1, current:{}, history:[] };
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+}
+function key(){ return activeTab + "-w" + state.week; }
+function getSet(exId, i){
+  const k = key();
+  if(!state.current[k]) state.current[k] = {};
+  if(!state.current[k][exId]) state.current[k][exId] = {};
+  if(!state.current[k][exId][i]) state.current[k][exId][i] = {done:false,reps:"",load:""};
+  return state.current[k][exId][i];
+}
+/* ============ RENDU ============ */
+function renderWeeks(){
+  const el = document.getElementById("weeks");
+  el.innerHTML = [1,2,3,4].map(w =>
+    `<button data-w="${w}" class="${state.week===w?'on':''}">S${w}</button>`
+  ).join("");
+}
+function renderNav(){
+  document.querySelectorAll("nav button").forEach(b=>{
+    b.classList.toggle("on", b.dataset.tab === activeTab);
+  });
+}
+function render(){
+  renderWeeks(); renderNav();
+  const app = document.getElementById("app");
+  if(activeTab === "H"){ app.innerHTML = renderHistory(); return; }
+  const sess = PROGRAM[activeTab];
+  let html = `<div class="card">
+      <h2>${sess.title}</h2>
+      <div class="sub">Semaine ${state.week} · RIR 2 (garde 2 reps en réserve) · repos adapté entre séries</div>
+    </div>`;
+  sess.exercises.forEach(ex=>{
+    const t = ex.weeks[state.week-1];
+    let done = 0;
+    for(let i=0;i<t.sets;i++) if(getSet(ex.id,i).done) done++;
+    const info = [`${t.sets} × ${t.reps}`, t.load, t.note].filter(Boolean).join(" · ");
+    html += `<div class="card">
+      <h2>${ex.name}</h2>
+      <div class="sub">Objectif : ${info} · <b>${done}/${t.sets}</b> faites</div>`;
+    for(let i=0;i<t.sets;i++){
+      const s = getSet(ex.id,i);
+      html += `<div class="set">
+        <div class="chk ${s.done?'on':''}" data-act="toggle" data-ex="${ex.id}" data-i="${i}">✓</div>
+        <div class="slabel">Série ${i+1}</div>
+        <div class="fields">
+          <div class="field"><span>Reps</span>
+            <input type="number" inputmode="numeric" placeholder="${t.reps}" value="${s.reps}"
+              data-act="reps" data-ex="${ex.id}" data-i="${i}"></div>
+          <div class="field"><span>Charge</span>
+            <input type="text" placeholder="${t.load||''}" value="${s.load}"
+              data-act="load" data-ex="${ex.id}" data-i="${i}"></div>
+        </div>
+      </div>`;
+    }
+    html += `</div>`;
+  });
+  html += `<button class="btn" data-act="validate">Valider la séance</button>
+           <button class="btn ghost" data-act="clear">Effacer cette séance</button>`;
+  app.innerHTML = html;
+}
+function renderHistory(){
+  if(!state.history.length) return `<div class="empty">Aucune séance validée pour l’instant.<br>Fais ta séance puis appuie sur « Valider ».</div>`;
+  let html = `<div class="card"><h2>Historique</h2>
+    <div class="sub">${state.history.length} séance(s) validée(s)</div></div>`;
+  state.history.slice().reverse().forEach(h=>{
+    const d = new Date(h.date).toLocaleDateString("fr-FR",
+      {day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+    html += `<div class="hitem">
+      <div class="top"><b>Séance ${h.session} · S${h.week}</b><span class="d">${d}</span></div>
+      <div class="det">${h.doneSets}/${h.totalSets} séries · ${h.totalReps} reps au total</div>
+      ${h.details.length ? `<div class="det">${h.details.join("<br>")}</div>` : ""}
+    </div>`;
+  });
+  html += `<button class="btn danger" data-act="wipe">Tout effacer</button>`;
+  return html;
+}
+/* ============ INTERACTIONS ============ */
+document.getElementById("app").addEventListener("click", e=>{
+  const el = e.target.closest("[data-act]");
+  if(!el) return;
+  const act = el.dataset.act;
+  if(act === "toggle"){
+    const exId = el.dataset.ex;
+    const s = getSet(exId, +el.dataset.i);
+    s.done = !s.done;
+    el.classList.toggle("on", s.done);
+    save();
+    render();
+    if(s.done){
+      const exObj = PROGRAM[activeTab].exercises.find(x=>x.id===exId);
+      if(exObj && exObj.rest) startTimer(exObj.rest);
+    }
+  }
+  if(act === "validate"){
+    if(!confirm("Valider la séance et l'ajouter à l'historique ?")) return;
+    const sess = PROGRAM[activeTab];
+    let doneSets=0, totalSets=0, totalReps=0, details=[];
+    sess.exercises.forEach(ex=>{
+      const t = ex.weeks[state.week-1];
+      totalSets += t.sets;
+      let d=0, r=0;
+      for(let i=0;i<t.sets;i++){
+        const s = getSet(ex.id,i);
+        if(s.done){ d++; doneSets++; r += (+s.reps||0); }
+      }
+      totalReps += r;
+      if(d) details.push(`${ex.name} : ${d}/${t.sets}${r?` (${r} reps)`:""}`);
+    });
+    state.history.push({date:Date.now(), session:activeTab, week:state.week,
+      doneSets, totalSets, totalReps, details});
+    state.current[key()] = {};
+    save(); render();
+    alert(`Séance validée : ${doneSets}/${totalSets} séries · ${totalReps} reps`);
+  }
+  if(act === "clear"){
+    if(!confirm("Effacer les données de cette séance (semaine en cours) ?")) return;
+    state.current[key()] = {};
+    save(); render();
+  }
+  if(act === "wipe"){
+    if(!confirm("Effacer TOUT l'historique ? Action définitive.")) return;
+    state.history = []; save(); render();
+  }
+});
+document.getElementById("app").addEventListener("input", e=>{
+  const el = e.target.closest("[data-act]");
+  if(!el) return;
+  if(el.dataset.act === "reps" || el.dataset.act === "load"){
+    const s = getSet(el.dataset.ex, +el.dataset.i);
+    if(el.dataset.act === "reps") s.reps = el.value; else s.load = el.value;
+    save();
+  }
+});
+document.getElementById("weeks").addEventListener("click", e=>{
+  const b = e.target.closest("button");
+  if(!b) return;
+  state.week = +b.dataset.w;
+  save(); render();
+});
+document.querySelector("nav").addEventListener("click", e=>{
+  const b = e.target.closest("button");
+  if(!b) return;
+  activeTab = b.dataset.tab;
+  render();
+});
+/* ============ CHRONO DE REPOS ============ */
+let tInt = null, tLeft = 90;
+const tBig = document.getElementById("timerBig");
+const tBox = document.getElementById("timer");
+function drawTimer(){
+  const m = Math.floor(tLeft/60), s = tLeft%60;
+  tBig.textContent = m + ":" + String(s).padStart(2,"0");
+  tBig.classList.toggle("run", tInt !== null);
+}
+function startTimer(sec){
+  clearInterval(tInt); tLeft = sec; drawTimer();
+  tBox.classList.add("on");
+  tInt = setInterval(()=>{
+    tLeft--;
+    if(tLeft <= 0){
+      clearInterval(tInt); tInt = null; tLeft = 0; drawTimer();
+      tBig.textContent = "GO !";
+      if(navigator.vibrate) navigator.vibrate([200,100,200,100,300]);
+      setTimeout(()=>{ tBox.classList.remove("on"); tLeft = 90; drawTimer(); }, 3000);
+      return;
+    }
+    drawTimer();
+  }, 1000);
+}
+document.getElementById("timerBtn").onclick = ()=>{
+  tBox.classList.toggle("on");
+  if(!tInt) drawTimer();
+};
+document.getElementById("timer").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  const act = b.dataset.t;
+  if(act === "cancel"){ 
+    clearInterval(tInt); tInt=null; tBox.classList.remove("on"); tLeft=90; drawTimer(); 
+  } else if(act === "mod+30"){
+    tLeft += 30; drawTimer();
+  } else if(act === "mod-30"){
+    tLeft = Math.max(0, tLeft - 30); drawTimer();
+  }
+});
+/* ============ GO ============ */
+render();
+drawTimer();
+</script>
+</body>
+</html>
